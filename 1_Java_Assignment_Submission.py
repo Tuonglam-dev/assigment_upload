@@ -1,14 +1,31 @@
 import random
-
 import pandas as pd
 import streamlit as st
+import os
+import string
+import environ
+import json
+
 from datetime import datetime
 from pathlib import Path
-import os
+# Initialise environment variables
+env = environ.Env()
+environ.Env.read_env()
 
-import string
 
-assignment_options = ['JAVA_001', 'JAVA_002', 'JAVA_003', 'JAVA_004']
+def read_file(path):
+    file = open(path, 'r')
+    data = file.read()
+    file.close()
+    return data
+
+
+def read_json(path):
+    return json.loads(read_file(path))
+
+
+relation_data = read_json("./data_relation.json")
+assignment_options = relation_data["assignment_option"]
 
 
 def random_char(y):
@@ -44,9 +61,11 @@ st.markdown("# 🎓 Java Assignment Submission")
 
 form = st.form("assignment-form", clear_on_submit=True)
 with form:
-    assignment_sel = st.selectbox("Select Java Assignment Option", options=assignment_options)
+    assignment_sel = st.selectbox(
+        "Select Java Assignment Option", options=assignment_options)
     owner = st.text_input('Owner: (shortname, ex: nduc)', '')
-    uploaded_file = st.file_uploader("Choose a zip file", accept_multiple_files=False)  # , type=['zip']
+    uploaded_file = st.file_uploader(
+        "Choose a zip file", accept_multiple_files=False)  # , type=['zip']
     submitted = st.form_submit_button("Submit")
     if not owner:
         st.error('Owner required')
@@ -65,7 +84,8 @@ with form:
         with open(save_path, 'wb') as f:
             f.write(uploaded_file.getvalue())
         if save_path.exists():
-            tracking_submission_data(assignment_sel, owner, uploaded_file_name, folder_str)
+            tracking_submission_data(
+                assignment_sel, owner, uploaded_file_name, folder_str)
             view_submission_data(folder_str)
             st.success(
                 f'Assignment={assignment_sel} - '
